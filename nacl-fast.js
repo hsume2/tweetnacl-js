@@ -2144,7 +2144,7 @@ nacl.lowlevel = {
   set25519: set25519,
   modL: modL,
   scalarmult: scalarmult,
-  scalarbase: scalarbase,
+  scalarbase: scalarbase
 };
 
 /* High-level API */
@@ -2378,9 +2378,19 @@ nacl.setPRNG = function(fn) {
   } else if (typeof require !== 'undefined') {
     // Node.js.
     crypto = require('crypto');
+    var expoRandom;
+    try {
+      expoRandom = require('expo-random');
+    } catch(e) {}
     if (crypto && crypto.randomBytes) {
       nacl.setPRNG(function(x, n) {
         var i, v = crypto.randomBytes(n);
+        for (i = 0; i < n; i++) x[i] = v[i];
+        cleanup(v);
+      });
+    } else if (expoRandom && expoRandom.getRandomBytes) {
+      nacl.setPRNG(function(x, n) {
+        var i, v = expoRandom.getRandomBytes(n);
         for (i = 0; i < n; i++) x[i] = v[i];
         cleanup(v);
       });
